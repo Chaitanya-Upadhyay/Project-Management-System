@@ -1,8 +1,7 @@
-package com.chaitanya.auth.role.service.impl;
+package com.chaitanya.auth.role.service;
 
 
 import com.chaitanya.auth.role.repository.RoleRepository;
-import com.chaitanya.auth.role.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
