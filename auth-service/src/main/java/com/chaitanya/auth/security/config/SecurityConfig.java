@@ -1,4 +1,4 @@
-package com.chaitanya.auth.security;
+package com.chaitanya.auth.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

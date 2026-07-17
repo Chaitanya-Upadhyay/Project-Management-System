@@ -18,5 +18,11 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+jwt:
+  secret:  ${JWT_SECRET:8m7A4sK2xN9qLp5vRw1zBc6TyHu3JeDf8QgW0ErYsXnMvKaP}
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+
 server:
   port: 8081
