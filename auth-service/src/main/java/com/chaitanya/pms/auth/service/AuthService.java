@@ -11,17 +11,21 @@ import com.chaitanya.pms.role.entity.Role;
 import com.chaitanya.pms.role.service.RoleService;
 import com.chaitanya.pms.security.jwt.JwtProperties;
 import com.chaitanya.pms.security.jwt.JwtService;
+import com.chaitanya.pms.security.user.CustomUserDetails;
 import com.chaitanya.pms.token.service.TokenService;
 import com.chaitanya.pms.user.entity.User;
 import com.chaitanya.pms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,23 +87,6 @@ public class AuthService {
                 .build();
     }
 
-    private UserResponse mapToUserResponse(User user) {
-
-        return UserResponse.builder()
-                .id(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .enabled(user.isEnabled())
-                .roles(
-                        user.getRoles()
-                                .stream()
-                                .map(role -> role.getName().name())
-                                .collect(java.util.stream.Collectors.toSet())
-                )
-                .build();
-    }
 
     @Transactional
     public AuthenticationResponse login(LoginRequest request) {
@@ -138,5 +125,48 @@ public class AuthService {
                                 "User not found with email : " + email
                         )
                 );
+    }
+
+    private UserResponse mapToUserResponse(User user) {
+
+        return UserResponse.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .enabled(user.isEnabled())
+                .roles(
+                        user.getRoles()
+                                .stream()
+                                .map(role -> role.getName().name())
+                                .collect(Collectors.toSet())
+                )
+                .build();
+    }
+
+
+    @Transactional(readOnly = true)
+    public UserResponse getCurrentUser(Authentication authentication) {
+
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
+
+        User user = userRepository
+                .findWithRolesByEmail(userDetails.getUsername())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found"));
+
+        System.out.println(
+                "Roles initialized : "
+                        + org.hibernate.Hibernate.isInitialized(user.getRoles())
+        );
+
+        System.out.println(
+                "Roles size : "
+                        + user.getRoles().size()
+        );
+        return mapToUserResponse(user);
     }
 }

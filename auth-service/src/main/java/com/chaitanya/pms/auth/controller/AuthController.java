@@ -7,6 +7,7 @@ import com.chaitanya.pms.auth.dto.UserResponse;
 import com.chaitanya.pms.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,5 +29,10 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         return authService.login(request);
+    }
+    @GetMapping("/me")
+    public UserResponse me(Authentication authentication) {
+
+        return authService.getCurrentUser(authentication);
     }
 }

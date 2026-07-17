@@ -38,19 +38,23 @@ public class TokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
+
+
+    @Transactional
     public RefreshToken saveRefreshToken(User user, String token) {
 
-        refreshTokenRepository.findByUser(user)
-                .ifPresent(refreshTokenRepository::delete);
+        RefreshToken refreshToken = refreshTokenRepository
+                .findByUser(user)
+                .orElseGet(RefreshToken::new);
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(token)
-                .expiryDate(
-                        Instant.now()
-                                .plusMillis(jwtProperties.getRefreshTokenExpiration())
+        refreshToken.setUser(user);
+        refreshToken.setToken(token);
+
+        refreshToken.setExpiryDate(
+                Instant.now().plusMillis(
+                        jwtProperties.getRefreshTokenExpiration()
                 )
-                .build();
+        );
 
         return refreshTokenRepository.save(refreshToken);
     }
