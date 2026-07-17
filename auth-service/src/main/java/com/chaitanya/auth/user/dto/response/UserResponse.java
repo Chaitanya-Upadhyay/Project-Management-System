@@ -1,4 +1,4 @@
-package com.chaitanya.auth.user.dto;
+package com.chaitanya.auth.user.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

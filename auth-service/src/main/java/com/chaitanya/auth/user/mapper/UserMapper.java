@@ -1,8 +1,8 @@
 package com.chaitanya.auth.user.mapper;
 
 import com.chaitanya.auth.role.entity.Role;
-import com.chaitanya.auth.user.dto.RegisterRequest;
-import com.chaitanya.auth.user.dto.UserResponse;
+import com.chaitanya.auth.user.dto.request.RegisterRequest;
+import com.chaitanya.auth.user.dto.response.UserResponse;
 import com.chaitanya.auth.user.entity.User;
 
 import java.util.Set;
