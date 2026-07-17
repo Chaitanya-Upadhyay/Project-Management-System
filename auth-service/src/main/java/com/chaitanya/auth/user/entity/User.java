@@ -11,10 +11,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+
 @Table(
         name = "users",
-        indexes = {
-                @Index(name = "idx_user_email", columnList = "email")
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_email",
+                        columnNames = "email"
+                )
         }
 )
 @Getter
@@ -34,7 +38,8 @@ public class User extends BaseEntity {
 
     @Email
     @NotBlank
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(name = "email", nullable = false, length = 255)
+
     private String email;
 
     @NotBlank
@@ -68,8 +73,14 @@ public class User extends BaseEntity {
             })
     @JoinTable(
             name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
+            joinColumns = @JoinColumn(
+                    name = "user_id",
+                    foreignKey = @ForeignKey(name = "fk_user_roles_user")
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "role_id",
+                    foreignKey = @ForeignKey(name = "fk_user_roles_role")
+            )
     )
     private Set<Role> roles = new HashSet<>();
 

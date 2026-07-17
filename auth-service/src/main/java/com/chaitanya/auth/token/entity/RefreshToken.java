@@ -16,7 +16,8 @@ import java.time.Instant;
 @Builder
 public class RefreshToken extends BaseEntity {
 
-    @Column(name = "token", nullable = false, unique = true, length = 500)
+    @Column(name = "token", nullable = false, length = 512)
+
     private String token;
 
     @Column(name = "expiry_date", nullable = false)
@@ -26,7 +27,10 @@ public class RefreshToken extends BaseEntity {
     @JoinColumn(
             name = "user_id",
             nullable = false,
-            unique = true
+            unique = true,
+            foreignKey = @ForeignKey(
+                    name = "fk_refresh_token_user"
+            )
     )
     private User user;
 }

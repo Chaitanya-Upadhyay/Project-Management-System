@@ -33,10 +33,10 @@ public abstract class BaseEntity {
     private Instant updatedAt;
 
     @CreatedBy
-    @Column(name = "created_by", updatable = false)
+    @Column(name = "created_by", updatable = false, length = 100)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(name = "updated_by")
+    @Column(name = "updated_by", length = 100)
     private String updatedBy;
 }
