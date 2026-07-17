@@ -14,4 +14,5 @@ public interface RoleRepository extends JpaRepository<Role, UUID> {
 
     boolean existsByName(RoleType name);
 
+
 }
