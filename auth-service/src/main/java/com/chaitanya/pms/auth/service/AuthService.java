@@ -16,6 +16,7 @@ import com.chaitanya.pms.user.entity.User;
 import com.chaitanya.pms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,4 +101,42 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
+    public AuthenticationResponse login(LoginRequest request) {
+
+        authenticate(request);
+
+        User user = getUserByEmail(request.getEmail());
+
+        String accessToken = jwtService.generateAccessToken(user);
+
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        tokenService.saveRefreshToken(user, refreshToken);
+
+        return AuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    private void authenticate(LoginRequest request) {
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+    }
+
+    private User getUserByEmail(String email) {
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with email : " + email
+                        )
+                );
+    }
 }

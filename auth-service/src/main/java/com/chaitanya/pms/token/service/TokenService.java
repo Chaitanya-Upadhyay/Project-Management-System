@@ -1,5 +1,6 @@
 package com.chaitanya.pms.token.service;
 
+import com.chaitanya.pms.security.jwt.JwtProperties;
 import com.chaitanya.pms.token.entity.RefreshToken;
 import com.chaitanya.pms.token.repository.RefreshTokenRepository;
 import com.chaitanya.pms.user.entity.User;
@@ -16,6 +17,7 @@ import java.util.Optional;
 public class TokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtProperties jwtProperties;
 
     /**
      * Save or replace refresh token for a user.
@@ -31,6 +33,23 @@ public class TokenService {
                 .token(token)
                 .expiryDate(expiryDate)
                 .user(user)
+                .build();
+
+        return refreshTokenRepository.save(refreshToken);
+    }
+
+    public RefreshToken saveRefreshToken(User user, String token) {
+
+        refreshTokenRepository.findByUser(user)
+                .ifPresent(refreshTokenRepository::delete);
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .user(user)
+                .token(token)
+                .expiryDate(
+                        Instant.now()
+                                .plusMillis(jwtProperties.getRefreshTokenExpiration())
+                )
                 .build();
 
         return refreshTokenRepository.save(refreshToken);
