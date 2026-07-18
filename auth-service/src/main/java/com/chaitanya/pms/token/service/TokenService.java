@@ -1,6 +1,8 @@
 package com.chaitanya.pms.token.service;
 
+import com.chaitanya.pms.exception.custom.ResourceNotFoundException;
 import com.chaitanya.pms.security.jwt.JwtProperties;
+import com.chaitanya.pms.security.jwt.JwtService;
 import com.chaitanya.pms.token.entity.RefreshToken;
 import com.chaitanya.pms.token.repository.RefreshTokenRepository;
 import com.chaitanya.pms.user.entity.User;
@@ -9,92 +11,92 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class TokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
+
+    private final JwtService jwtService;
     private final JwtProperties jwtProperties;
 
-    /**
-     * Save or replace refresh token for a user.
-     * We allow only one active refresh token per user.
-     */
-    public RefreshToken save(User user,
-                             String token,
-                             Instant expiryDate) {
 
-        refreshTokenRepository.deleteByUser(user);
 
+    @Transactional
+    public RefreshToken saveRefreshToken(
+            User user,
+            String token) {
+
+        // Delete existing refresh token for this user
+        refreshTokenRepository.deleteByUserId(user.getId());
+
+        // Immediately flush DELETE to database
+        refreshTokenRepository.flush();
+
+        // Create new refresh token
         RefreshToken refreshToken = RefreshToken.builder()
                 .token(token)
-                .expiryDate(expiryDate)
+                .expiryDate(
+                        Instant.now().plusMillis(
+                                jwtProperties.getRefreshTokenExpiration()
+                        )
+                )
                 .user(user)
                 .build();
 
         return refreshTokenRepository.save(refreshToken);
     }
 
-
-
     @Transactional
-    public RefreshToken saveRefreshToken(User user, String token) {
+    public RefreshToken createOrUpdateRefreshToken(User user) {
 
         RefreshToken refreshToken = refreshTokenRepository
                 .findByUser(user)
                 .orElseGet(RefreshToken::new);
 
-        refreshToken.setUser(user);
-        refreshToken.setToken(token);
+        refreshToken.setToken(
+                jwtService.generateRefreshToken(user)
+        );
 
         refreshToken.setExpiryDate(
-                Instant.now().plusMillis(
-                        jwtProperties.getRefreshTokenExpiration()
-                )
+                jwtService.getRefreshTokenExpiry()
         );
+
+        refreshToken.setUser(user);
 
         return refreshTokenRepository.save(refreshToken);
     }
 
-    /**
-     * Find refresh token by token value.
-     */
     @Transactional(readOnly = true)
-    public Optional<RefreshToken> findByToken(String token) {
-        return refreshTokenRepository.findByToken(token);
+    public RefreshToken getRefreshToken(String token) {
+
+        return refreshTokenRepository
+                .findByToken(token)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Refresh token not found"));
     }
 
-    /**
-     * Find refresh token by user.
-     */
-    @Transactional(readOnly = true)
-    public Optional<RefreshToken> findByUser(User user) {
-        return refreshTokenRepository.findByUser(user);
+    public boolean isRefreshTokenExpired(
+            RefreshToken refreshToken) {
+
+        return refreshToken
+                .getExpiryDate()
+                .isBefore(Instant.now());
     }
 
-    /**
-     * Delete refresh token of a user.
-     * Used during logout.
-     */
-    public void deleteByUser(User user) {
-        refreshTokenRepository.deleteByUser(user);
-    }
+    @Transactional
+    public void deleteRefreshToken(
+            RefreshToken refreshToken) {
 
-    /**
-     * Delete a refresh token.
-     */
-    public void delete(RefreshToken refreshToken) {
         refreshTokenRepository.delete(refreshToken);
     }
 
-    /**
-     * Check if refresh token has expired.
-     */
-    public boolean isExpired(RefreshToken refreshToken) {
-        return refreshToken.getExpiryDate().isBefore(Instant.now());
-    }
-
+//    @Transactional
+//    public void deleteByUser(User user) {
+//
+//        refreshTokenRepository.deleteByUser(user);
+//    }
 }

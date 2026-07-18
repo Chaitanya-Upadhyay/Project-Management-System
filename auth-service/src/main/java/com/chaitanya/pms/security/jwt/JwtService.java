@@ -40,18 +40,42 @@ public class JwtService {
                 .compact();
     }
 
+//    public String generateRefreshToken(User user) {
+//
+//        Instant now = Instant.now();
+//
+//        return Jwts.builder()
+//                .subject(user.getEmail())
+//                .issuedAt(Date.from(now))
+//                .expiration(Date.from(
+//                        now.plusMillis(jwtProperties.getRefreshTokenExpiration())
+//                ))
+//                .signWith(getSigningKey())
+//                .compact();
+//    }
+
     public String generateRefreshToken(User user) {
 
-        Instant now = Instant.now();
+        Instant issuedAt = Instant.now();
+
+        Instant expiration = issuedAt.plusMillis(
+                jwtProperties.getRefreshTokenExpiration()
+        );
 
         return Jwts.builder()
                 .subject(user.getEmail())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(
-                        now.plusMillis(jwtProperties.getRefreshTokenExpiration())
-                ))
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiration))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public Instant getRefreshTokenExpiry() {
+
+        return Instant.now()
+                .plusMillis(
+                        jwtProperties.getRefreshTokenExpiration()
+                );
     }
 
     public String extractUsername(String token) {

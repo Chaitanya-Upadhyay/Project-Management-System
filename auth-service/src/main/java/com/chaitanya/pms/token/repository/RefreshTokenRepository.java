@@ -3,6 +3,9 @@ package com.chaitanya.pms.token.repository;
 import com.chaitanya.pms.token.entity.RefreshToken;
 import com.chaitanya.pms.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -14,5 +17,10 @@ public interface RefreshTokenRepository
 
     Optional<RefreshToken> findByUser(User user);
 
-    void deleteByUser(User user);
+    @Modifying
+    @Query("""
+            DELETE FROM RefreshToken rt
+            WHERE rt.user.id = :userId
+            """)
+    void deleteByUserId(@Param("userId") UUID userId);
 }

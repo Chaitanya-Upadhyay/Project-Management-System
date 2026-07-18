@@ -1,9 +1,6 @@
 package com.chaitanya.pms.auth.controller;
 
-import com.chaitanya.pms.auth.dto.AuthenticationResponse;
-import com.chaitanya.pms.auth.dto.LoginRequest;
-import com.chaitanya.pms.auth.dto.RegisterRequest;
-import com.chaitanya.pms.auth.dto.UserResponse;
+import com.chaitanya.pms.auth.dto.*;
 import com.chaitanya.pms.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +31,12 @@ public class AuthController {
     public UserResponse me(Authentication authentication) {
 
         return authService.getCurrentUser(authentication);
+    }
+
+    @PostMapping("/refresh")
+    public AuthenticationResponse refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request) {
+
+        return authService.refreshToken(request);
     }
 }

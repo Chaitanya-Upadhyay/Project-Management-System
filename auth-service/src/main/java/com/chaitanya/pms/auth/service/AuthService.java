@@ -1,10 +1,8 @@
 package com.chaitanya.pms.auth.service;
 
-import com.chaitanya.pms.auth.dto.AuthenticationResponse;
-import com.chaitanya.pms.auth.dto.LoginRequest;
-import com.chaitanya.pms.auth.dto.RegisterRequest;
-import com.chaitanya.pms.auth.dto.UserResponse;
+import com.chaitanya.pms.auth.dto.*;
 import com.chaitanya.pms.common.enums.RoleType;
+import com.chaitanya.pms.exception.custom.InvalidTokenException;
 import com.chaitanya.pms.exception.custom.ResourceAlreadyExistsException;
 import com.chaitanya.pms.exception.custom.ResourceNotFoundException;
 import com.chaitanya.pms.role.entity.Role;
@@ -12,6 +10,7 @@ import com.chaitanya.pms.role.service.RoleService;
 import com.chaitanya.pms.security.jwt.JwtProperties;
 import com.chaitanya.pms.security.jwt.JwtService;
 import com.chaitanya.pms.security.user.CustomUserDetails;
+import com.chaitanya.pms.token.entity.RefreshToken;
 import com.chaitanya.pms.token.service.TokenService;
 import com.chaitanya.pms.user.entity.User;
 import com.chaitanya.pms.user.repository.UserRepository;
@@ -168,5 +167,41 @@ public class AuthService {
                         + user.getRoles().size()
         );
         return mapToUserResponse(user);
+    }
+
+
+    @Transactional
+    public AuthenticationResponse refreshToken(
+            RefreshTokenRequest request) {
+
+        RefreshToken existingRefreshToken =
+                tokenService.getRefreshToken(
+                        request.getRefreshToken()
+                );
+
+        if (tokenService.isRefreshTokenExpired(
+                existingRefreshToken)) {
+
+            tokenService.deleteRefreshToken(
+                    existingRefreshToken
+            );
+
+            throw new InvalidTokenException(
+                    "Refresh token has expired"
+            );
+        }
+
+        User user = existingRefreshToken.getUser();
+
+        String newAccessToken =
+                jwtService.generateAccessToken(user);
+
+        RefreshToken newRefreshToken =
+                tokenService.createOrUpdateRefreshToken(user);
+
+        return AuthenticationResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken.getToken())
+                .build();
     }
 }

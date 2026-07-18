@@ -2,6 +2,7 @@ package com.chaitanya.pms.exception.handler;
 
 import com.chaitanya.pms.common.response.ErrorResponse;
 import com.chaitanya.pms.exception.custom.EmailAlreadyExistsException;
+import com.chaitanya.pms.exception.custom.InvalidTokenException;
 import com.chaitanya.pms.exception.custom.ResourceAlreadyExistsException;
 import com.chaitanya.pms.exception.custom.RoleNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,6 +59,21 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(response);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleInvalidToken(
+            InvalidTokenException ex,
+            HttpServletRequest request) {
+
+        return ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
     }
 
 }
