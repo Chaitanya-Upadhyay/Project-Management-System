@@ -24,5 +24,13 @@ jwt:
   refresh-token-expiration: 604800000
 
 
+
+
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
 server:
   port: 8081

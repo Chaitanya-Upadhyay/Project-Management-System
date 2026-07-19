@@ -1,6 +1,7 @@
 package com.chaitanya.pms.auth.service;
 
 import com.chaitanya.pms.auth.dto.*;
+import com.chaitanya.pms.auth.dto.request.ChangePasswordRequest;
 import com.chaitanya.pms.common.enums.RoleType;
 import com.chaitanya.pms.exception.custom.InvalidTokenException;
 import com.chaitanya.pms.exception.custom.ResourceAlreadyExistsException;
@@ -171,37 +172,51 @@ public class AuthService {
 
 
     @Transactional
-    public AuthenticationResponse refreshToken(
-            RefreshTokenRequest request) {
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) {
 
-        RefreshToken existingRefreshToken =
-                tokenService.getRefreshToken(
-                        request.getRefreshToken()
-                );
+        RefreshToken existingRefreshToken = tokenService.getRefreshToken(request.getRefreshToken());
 
-        if (tokenService.isRefreshTokenExpired(
-                existingRefreshToken)) {
-
-            tokenService.deleteRefreshToken(
-                    existingRefreshToken
-            );
-
-            throw new InvalidTokenException(
-                    "Refresh token has expired"
-            );
+        if (tokenService.isRefreshTokenExpired(existingRefreshToken)) {
+            tokenService.deleteRefreshToken(existingRefreshToken);
+            throw new InvalidTokenException("Refresh token has expired");
         }
 
         User user = existingRefreshToken.getUser();
 
-        String newAccessToken =
-                jwtService.generateAccessToken(user);
+        String newAccessToken = jwtService.generateAccessToken(user);
 
-        RefreshToken newRefreshToken =
-                tokenService.createOrUpdateRefreshToken(user);
+        RefreshToken newRefreshToken = tokenService.createOrUpdateRefreshToken(user);
 
         return AuthenticationResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken.getToken())
                 .build();
+    }
+
+    @Transactional
+    public void logout(Authentication authentication) {
+
+        UserDetails userDetails =
+                (UserDetails) authentication.getPrincipal();
+
+        User user = getUserByEmail(userDetails.getUsername());
+
+        tokenService.deleteByUser(user);
+    }
+
+    @Transactional
+    public void changePassword(ChangePasswordRequest request, Authentication authentication) {
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User user = getUserByEmail(userDetails.getUsername());
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        tokenService.deleteRefreshToken(user);
     }
 }

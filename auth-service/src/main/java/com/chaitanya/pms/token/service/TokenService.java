@@ -6,6 +6,7 @@ import com.chaitanya.pms.security.jwt.JwtService;
 import com.chaitanya.pms.token.entity.RefreshToken;
 import com.chaitanya.pms.token.repository.RefreshTokenRepository;
 import com.chaitanya.pms.user.entity.User;
+import com.chaitanya.pms.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,9 +75,7 @@ public class TokenService {
 
         return refreshTokenRepository
                 .findByToken(token)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Refresh token not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Refresh token not found"));
     }
 
     public boolean isRefreshTokenExpired(
@@ -88,15 +87,19 @@ public class TokenService {
     }
 
     @Transactional
-    public void deleteRefreshToken(
-            RefreshToken refreshToken) {
+    public void deleteRefreshToken(RefreshToken refreshToken) {
 
         refreshTokenRepository.delete(refreshToken);
     }
 
-//    @Transactional
-//    public void deleteByUser(User user) {
-//
-//        refreshTokenRepository.deleteByUser(user);
-//    }
+
+    @Transactional
+    public void deleteRefreshToken(User user) {
+        refreshTokenRepository.deleteByUser(user);
+    }
+    @Transactional
+    public void deleteByUser(User user) {
+
+        refreshTokenRepository.deleteByUser(user);
+    }
 }

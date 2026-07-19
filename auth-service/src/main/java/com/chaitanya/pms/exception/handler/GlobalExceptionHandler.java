@@ -1,10 +1,7 @@
 package com.chaitanya.pms.exception.handler;
 
 import com.chaitanya.pms.common.response.ErrorResponse;
-import com.chaitanya.pms.exception.custom.EmailAlreadyExistsException;
-import com.chaitanya.pms.exception.custom.InvalidTokenException;
-import com.chaitanya.pms.exception.custom.ResourceAlreadyExistsException;
-import com.chaitanya.pms.exception.custom.RoleNotFoundException;
+import com.chaitanya.pms.exception.custom.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +68,21 @@ public class GlobalExceptionHandler {
                 .timestamp(Instant.now())
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleRefreshTokenNotFound(
+            ResourceNotFoundException ex,
+            HttpServletRequest request) {
+
+        return ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
                 .build();

@@ -66,11 +66,7 @@ public class User extends BaseEntity {
     private boolean credentialsNonExpired = true;
 
     @Builder.Default
-    @ManyToMany(fetch = FetchType.LAZY,
-            cascade = {
-                    CascadeType.PERSIST,
-                    CascadeType.MERGE
-            })
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(

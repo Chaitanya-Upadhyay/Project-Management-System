@@ -23,4 +23,5 @@ public interface RefreshTokenRepository
             WHERE rt.user.id = :userId
             """)
     void deleteByUserId(@Param("userId") UUID userId);
+    void deleteByUser(User user);
 }
